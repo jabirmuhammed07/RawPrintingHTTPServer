@@ -73,11 +73,11 @@ namespace RawPrintingHTTPServer.handlers
                         }
                         else if (server.config.testingMode == 0)
                         {
-                            success = RawPrintingHelper.SendBytesToPrinter(printjob.printer, bindata, printjob.id);
+                            success = RawPrintingHelper.sendStringToPrinter(printjob.printer, printjob.data, printjob.id);
                         }
                         else
                         {
-                            success = RawPrintingHelper.SendBytesToPrinter(printjob.printer, bindata, printjob.id) && WritePrintJobFile(printjob.id, bindata);
+                            success = RawPrintingHelper.sendStringToPrinter(printjob.printer, printjob.data, printjob.id) && WritePrintJobFile(printjob.id, bindata);
                         }
 
                         accesslog += "\tsuccess\t" + printjob.id + "\t" + printjob.printer;
@@ -91,7 +91,7 @@ namespace RawPrintingHTTPServer.handlers
             {
                 ServerConfig.appendLog("Error: " + e.Message + "\n" + e.StackTrace);
                 printjobresp.success = false;
-                printjobresp.data = "";
+                printjobresp.data = e.Message;
                 accesslog += "\tfailed";
                 ServerConfig.appendLog(accesslog);
             }
