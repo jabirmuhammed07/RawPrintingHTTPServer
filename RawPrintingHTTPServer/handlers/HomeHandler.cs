@@ -16,11 +16,14 @@ namespace RawPrintingHTTPServer.handlers
             this.server = server;
         }
 
-        private bool WritePrintJobFile(string printjobname, byte[] bindata)
+        private bool WritePrintJobFile(string printjobname, string data)
         {
             string replaceSlashWith = "_";
             string sanitized = printjobname.Replace("\\", replaceSlashWith).Replace("/", replaceSlashWith);
             string filePath = ServerConfig.basePath + "\\" + sanitized + ".prn";
+
+            byte[] bindata = Convert.FromBase64String(data);
+
             using (FileStream sw = new FileStream(filePath, FileMode.Create))
             {
                 sw.Write(bindata, 0, bindata.Length);
@@ -64,20 +67,18 @@ namespace RawPrintingHTTPServer.handlers
                         body.Close();
                         reader.Close();
 
-                        byte[] bindata = printjob.DataToByteArray();
-
                         bool success = false;
                         if (server.config.testingMode == 1)
                         {
-                            success = WritePrintJobFile(printjob.id, bindata);
+                            success = WritePrintJobFile(printjob.id, printjob.data);
                         }
                         else if (server.config.testingMode == 0)
                         {
-                            success = RawPrintingHelper.sendStringToPrinter(printjob.printer, printjob.data, printjob.id);
+                            success = RawPrintingHelper.SendStringToPrinter(printjob.printer, printjob.data);
                         }
                         else
                         {
-                            success = RawPrintingHelper.sendStringToPrinter(printjob.printer, printjob.data, printjob.id) && WritePrintJobFile(printjob.id, bindata);
+                            success = RawPrintingHelper.SendStringToPrinter(printjob.printer, printjob.data) && WritePrintJobFile(printjob.id, printjob.data);
                         }
 
                         accesslog += "\tsuccess\t" + printjob.id + "\t" + printjob.printer;
